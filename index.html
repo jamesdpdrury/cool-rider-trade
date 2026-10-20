@@ -785,6 +785,30 @@
     .banner .btn.new-only-btn{ background:rgba(22,163,74,0.2); border-color:rgba(74,222,128,0.6); color:#bbf7d0; }
     .banner .btn.new-only-btn.active{ background:#16a34a; border-color:#16a34a; color:#fff; }
 
+    /* ===== Sort toggle / date view ===== */
+    .sort-row{ display:flex; align-items:center; gap:0.6rem; margin-top:0.75rem; }
+    .sort-label{ font-size:0.8rem; font-weight:600; color:rgba(255,255,255,0.75); text-transform:uppercase; letter-spacing:0.06em; }
+    .sort-toggle{ display:inline-flex; border:1px solid rgba(255,255,255,0.3); border-radius:999px; overflow:hidden; }
+    .sort-btn{
+      border:none; background:transparent; color:#fff; font-family:inherit;
+      font-weight:700; font-size:0.85rem; padding:0.35rem 1rem; cursor:pointer;
+    }
+    .sort-btn.active{ background:var(--orange); }
+    .card-show{
+      font-size:1.2rem; font-weight:800; line-height:1.2; letter-spacing:-0.01em;
+      color:var(--navy); margin-bottom:0.25rem; overflow-wrap:anywhere;
+    }
+    .card-show + .production{
+      font-size:0.85rem; font-weight:500; color:rgba(20,33,61,0.65);
+    }
+    .card-date{
+      margin-top:0.35rem;
+      font-size:0.78rem;
+      font-weight:600;
+      color:rgba(20,33,61,0.65);
+    }
+    .cards-wrapper.date-view{ margin-top:0.9rem; }
+
     /* ===== Mobile ===== */
     html, body{ max-width:100%; overflow-x:hidden; }
     .production, .show-heading span:first-child, .stats-name{ overflow-wrap:anywhere; }
@@ -840,7 +864,7 @@
         <button class="hamburger" id="hamburgerBtn">☰</button>
 
         <div class="top-actions" id="desktopActions">
-          <button class="btn new-only-btn" id="newOnlyBtn">Show NEW only</button>
+          <button class="btn new-only-btn" id="newOnlyBtn">Show my latest recordings</button>
           <button class="btn ghost" id="statsBtn">Recording Stats</button>
           <button class="btn" id="filterToggleBtn">Filter Recordings</button>
           <button class="btn danger" id="clearFiltersBtn">Clear Filters</button>
@@ -849,7 +873,7 @@
 
       <!-- Mobile actions row -->
       <div class="mobile-actions" id="mobileActions">
-        <button class="btn new-only-btn" id="newOnlyBtnMobile">Show NEW only</button>
+        <button class="btn new-only-btn" id="newOnlyBtnMobile">Show my latest recordings</button>
         <button class="btn ghost" id="statsBtnMobile">Recording Stats</button>
         <button class="btn" id="filterToggleBtnMobile">Filter Recordings</button>
         <button class="btn danger" id="clearFiltersBtnMobile">Clear Filters</button>
@@ -872,6 +896,14 @@
             <button class="submit-btn" id="submitBtn">Submit Request (0/10)</button>
             <button class="btn danger clear-selected-btn" id="clearSelectedBtn">Clear Selected</button>
           </div>
+        </div>
+      </div>
+
+      <div class="sort-row">
+        <span class="sort-label">Sort by</span>
+        <div class="sort-toggle" role="group" aria-label="Sort recordings">
+          <button class="sort-btn active" id="sortAlphaBtn" type="button">A–Z</button>
+          <button class="sort-btn" id="sortDateBtn" type="button">Date</button>
         </div>
       </div>
 
@@ -966,6 +998,7 @@
 
     let selected = []; // array of row objects
     let showNewOnly = false;
+    let sortMode = "alpha"; // "alpha" | "date"
 
     // Persist open + selected states by unique key
     // key = TITLE + VENUE + DATE (good enough for this sheet)
@@ -991,6 +1024,15 @@
       let t = clean(title);
       t = t.replace(/^(the|a)\s+/i, "");
       return t.trim();
+    }
+
+    function normalizeTitleForDateSort(title){
+      return clean(title)
+        .replace(/^(the|a)\b/i, "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]/gi, "")
+        .toLowerCase();
     }
 
     function groupLetterFromTitle(title){
@@ -1020,18 +1062,42 @@
       return y ? y[1] : "";
     }
 
+    const FULL_MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+
+    // Returns { d, m, y, hasDay, hasMonth } or null.
+    // Missing day => 1st of the month; missing month => January.
+    function parseDateParts(s){
+      let m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})$/);
+      if(m){
+        const y = m[3].length === 2 ? 2000 + parseInt(m[3],10) : parseInt(m[3],10);
+        return { d:parseInt(m[1],10), m:parseInt(m[2],10), y, hasDay:true, hasMonth:true, numeric:true };
+      }
+
+      // "11th November 1997", "11 Nov 1997", "November 2022", "Sept 2022"
+      m = s.match(/^(?:(\d{1,2})(?:st|nd|rd|th)?\s+)?([A-Za-z]{3,})\.?,?\s+(\d{4})$/);
+      if(m){
+        const idx = FULL_MONTHS.findIndex(n => n.toLowerCase().startsWith(m[2].toLowerCase().slice(0,3)));
+        if(idx >= 0){
+          return { d: m[1] ? parseInt(m[1],10) : 1, m: idx+1, y: parseInt(m[3],10), hasDay: !!m[1], hasMonth:true };
+        }
+      }
+
+      if(/^\d{4}$/.test(s)){
+        return { d:1, m:1, y:parseInt(s,10), hasDay:false, hasMonth:false };
+      }
+      return null;
+    }
+
     function parseDateSortable(dateStr){
       const s = clean(dateStr);
       if(!s) return { sort: 99999999, label: "" };
 
-      const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})$/);
-      if(m){
-        const d = parseInt(m[1],10);
-        const mo = parseInt(m[2],10);
-        let y = m[3];
-        if(y.length === 2) y = "20" + y;
-        const yy = parseInt(y,10);
-        return { sort: yy*10000 + mo*100 + d, label: formatPrettyDate(d, mo, yy) };
+      const p = parseDateParts(s);
+      if(p){
+        return {
+          sort: p.y*10000 + p.m*100 + p.d,
+          label: p.numeric ? formatPrettyDate(p.d, p.m, p.y) : formatFullDate(s)
+        };
       }
 
       // fallback: try extract year
@@ -1046,6 +1112,15 @@
     function formatPrettyDate(d, m, y){
       const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
       return `${d}${ordinal(d)} ${months[m-1]} ${y}`;
+    }
+
+    function formatFullDate(dateStr){
+      const s = clean(dateStr);
+      const p = parseDateParts(s);
+      if(!p || p.m < 1 || p.m > 12) return s;
+      if(!p.hasMonth) return `${p.y}`;
+      if(!p.hasDay) return `${FULL_MONTHS[p.m-1]} ${p.y}`;
+      return `${p.d}${ordinal(p.d)} ${FULL_MONTHS[p.m-1]} ${p.y}`;
     }
 
     function ordinal(n){
@@ -1255,7 +1330,7 @@
     function updateNewOnlyBtns(){
       document.querySelectorAll(".new-only-btn").forEach(b=>{
         b.classList.toggle("active", showNewOnly);
-        b.textContent = showNewOnly ? "Showing NEW only ✕" : "Show NEW only";
+        b.textContent = showNewOnly ? "Show my latest recordings ✕" : "Show my latest recordings";
       });
     }
 
@@ -1373,12 +1448,99 @@
        RENDER
     ========================== */
 
+    function setSortMode(mode){
+      sortMode = mode;
+      document.getElementById("sortAlphaBtn").classList.toggle("active", mode === "alpha");
+      document.getElementById("sortDateBtn").classList.toggle("active", mode === "date");
+      renderCards();
+      window.scrollTo({ top: 0 });
+    }
+
+    // Date view: grouped by year (newest first), each card shows its show name
+    function renderByDate(rows){
+      const container = document.getElementById("cardsContainer");
+      const byYear = {};
+      for(const r of rows){
+        const y = parseYear(r.DATE) || "Unknown";
+        (byYear[y] = byYear[y] || []).push(r);
+      }
+
+      const years = Object.keys(byYear).sort((a,b)=>{
+        if(a === "Unknown") return 1;
+        if(b === "Unknown") return -1;
+        return parseInt(b,10) - parseInt(a,10);
+      });
+
+      for(const y of years){
+        const h = document.createElement("div");
+        h.className = "alpha-heading";
+        h.id = `year-${y}`;
+        h.textContent = y;
+        container.appendChild(h);
+
+        const wrap = document.createElement("div");
+        wrap.className = "cards-wrapper date-view";
+        container.appendChild(wrap);
+
+        byYear[y].sort((a,b)=>{
+          const dateOrder = parseDateSortable(b.DATE).sort - parseDateSortable(a.DATE).sort;
+          if(dateOrder) return dateOrder;
+
+          const showOrder = normalizeTitleForDateSort(a.TITLE).localeCompare(normalizeTitleForDateSort(b.TITLE));
+          if(showOrder) return showOrder;
+
+          return normalizeTitleForDateSort(a.PRODUCTION).localeCompare(normalizeTitleForDateSort(b.PRODUCTION));
+        });
+        for(const row of byYear[y]) wrap.appendChild(buildCard(row));
+      }
+
+      buildYearNav(years);
+    }
+
+    function buildYearNav(present){
+      const nav = document.getElementById("alphaNav");
+      nav.innerHTML = "";
+
+      const all = new Set(present);
+      for(const r of allData){
+        if(isTrue(r.SELECTED)) all.add(parseYear(r.DATE) || "Unknown");
+      }
+      const years = [...all].sort((a,b)=>{
+        if(a === "Unknown") return 1;
+        if(b === "Unknown") return -1;
+        return parseInt(b,10) - parseInt(a,10);
+      });
+
+      for(const y of years){
+        const b = document.createElement("button");
+        b.className = "alpha-btn";
+        b.textContent = y;
+        if(!present.includes(y)){
+          b.disabled = true;
+        }else{
+          b.addEventListener("click", ()=>{
+            const target = document.getElementById(`year-${y}`);
+            if(!target) return;
+            const offset = document.querySelector(".banner").offsetHeight + 8;
+            window.scrollTo({ top: target.getBoundingClientRect().top + window.scrollY - offset, behavior:"smooth" });
+          });
+        }
+        nav.appendChild(b);
+      }
+    }
+
     function renderCards(){
       const rows = getFiltered();
       filteredData = rows;
 
       const container = document.getElementById("cardsContainer");
       container.innerHTML = "";
+
+      if(sortMode === "date"){
+        renderByDate(rows);
+        updateSubmitBtn();
+        return;
+      }
 
       const grouped = groupByAlphaThenShow(rows);
 
@@ -1486,17 +1648,33 @@
       const main = document.createElement("div");
       main.className = "card-main";
 
+      if(sortMode === "date"){
+        const showEl = document.createElement("div");
+        showEl.className = "card-show";
+        showEl.textContent = clean(row.TITLE) || "(No title)";
+        main.appendChild(showEl);
+      }
+
       const prod = document.createElement("p");
       prod.className = "production";
       prod.textContent = production || "(No production)";
       main.appendChild(prod);
 
+      if(sortMode === "date" && dateInfo.label){
+        const dateEl = document.createElement("div");
+        dateEl.className = "card-date";
+        dateEl.textContent = `Recording Date: ${formatFullDate(row.DATE)}`;
+        main.appendChild(dateEl);
+      }
+
       top.appendChild(main);
 
-      const yearEl = document.createElement("div");
-      yearEl.className = "year";
-      yearEl.textContent = year || "";
-      top.appendChild(yearEl);
+      if(sortMode !== "date"){
+        const yearEl = document.createElement("div");
+        yearEl.className = "year";
+        yearEl.textContent = year || "";
+        top.appendChild(yearEl);
+      }
 
       card.appendChild(top);
 
@@ -1524,7 +1702,7 @@
       }
 
       // Date
-      if(dateInfo.label){
+      if(dateInfo.label && sortMode !== "date"){
         const d = document.createElement("div");
         d.className = "detail-line";
         d.textContent = `Recording Date: ${dateInfo.label}`;
@@ -1936,6 +2114,8 @@
     document.getElementById("cancelRequestBtn").addEventListener("click", closeRequest);
     document.getElementById("requestCloseBtn").addEventListener("click", closeRequest);
 
+    document.getElementById("sortAlphaBtn").addEventListener("click", ()=> setSortMode("alpha"));
+    document.getElementById("sortDateBtn").addEventListener("click", ()=> setSortMode("date"));
     document.getElementById("newOnlyBtn").addEventListener("click", toggleNewOnly);
     document.getElementById("newOnlyBtnMobile").addEventListener("click", toggleNewOnly);
     document.getElementById("statsBtn").addEventListener("click", openStats);
