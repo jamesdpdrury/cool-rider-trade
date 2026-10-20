@@ -1,0 +1,1966 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cool Rider Trade</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+  <!-- PapaParse -->
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
+  <!-- EmailJS -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+
+  <style>
+    :root{
+      --bg:#ffffff;
+      --text:#111;
+      --muted:rgba(0,0,0,0.55);
+      --border:rgba(0,0,0,0.10);
+      --shadow: 0 10px 25px rgba(0,0,0,0.08);
+      --orange:#ff6a00;
+      --glass: rgba(255,255,255,0.72);
+      --glass2: rgba(255,255,255,0.55);
+    }
+
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family:"Poppins", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    /* ===== Sticky Banner ===== */
+    .banner{
+      position: sticky;
+      top: 0;
+      z-index: 999;
+      padding: 1rem 1rem 0.9rem;
+      border-bottom: 1px solid var(--border);
+      background: var(--glass);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+
+    .banner-inner{
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .top-row{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 1rem;
+    }
+
+    .site-title{
+      font-size: 1.2rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin:0;
+      white-space:nowrap;
+    }
+
+    .top-actions{
+      display:flex;
+      gap:0.6rem;
+      align-items:center;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+
+    .btn{
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.8);
+      color: #111;
+      padding: 0.55rem 0.8rem;
+      border-radius: 999px;
+      font-family: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform .12s ease, background .12s ease;
+      box-shadow: 0 6px 14px rgba(0,0,0,0.06);
+    }
+    .btn:hover{ transform: translateY(-1px); }
+    .btn:active{ transform: translateY(0px); }
+
+    .btn.primary{
+      background: #111;
+      color:#fff;
+      border-color:#111;
+    }
+
+    .btn.ghost{
+      background: rgba(255,255,255,0.35);
+    }
+
+    .btn.danger{
+      background: rgba(255,0,0,0.07);
+      border-color: rgba(255,0,0,0.18);
+      color:#b30000;
+      box-shadow:none;
+    }
+    .btn.danger:hover{
+      background: rgba(255,0,0,0.10);
+    }
+
+    /* Mobile hamburger */
+    .hamburger{
+      display:none;
+      border:none;
+      background: transparent;
+      font-size: 1.4rem;
+      cursor:pointer;
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.75rem;
+    }
+    .hamburger:hover{
+      background: rgba(0,0,0,0.05);
+    }
+
+    /* Search */
+    .search-wrap{
+      margin-top: 0.8rem;
+      display:flex;
+      gap:0.8rem;
+      align-items:flex-start;
+      flex-wrap:wrap;
+    }
+
+    .search-box{
+      flex: 1 1 420px;
+      position:relative;
+      min-width: 260px;
+    }
+
+    input[type="text"]{
+      width:100%;
+      padding: 0.9rem 2.8rem 0.9rem 1rem;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      font-size: 1rem;
+      font-family: inherit;
+      outline:none;
+      background: rgba(255,255,255,0.8);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.06);
+    }
+
+    .clear-search{
+      position:absolute;
+      right: 0.6rem;
+      top: 33.3%;
+      transform: translateY(-50%);
+      width: 2rem;
+      height: 2rem;
+      border-radius: 999px;
+      border:none;
+      background: rgba(0,0,0,0.08);
+      cursor:pointer;
+      display:none;
+      font-weight:700;
+    }
+    .clear-search:hover{ background: rgba(0,0,0,0.12); }
+
+    /* Request block */
+    .request-wrap{
+      flex: 0 0 auto;
+      min-width: 260px;
+      display:flex;
+      flex-direction:column;
+      gap: 0.45rem;
+    }
+
+    .request-hint{
+      font-size: 0.86rem;
+      color: var(--muted);
+      line-height: 1.25;
+    }
+
+    .request-actions{
+      display:flex;
+      gap:0.6rem;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+
+    .submit-btn{
+      border:none;
+      background: var(--orange);
+      color:#fff;
+      padding: 0.7rem 0.95rem;
+      border-radius: 999px;
+      font-family: inherit;
+      font-weight: 700;
+      cursor:pointer;
+      box-shadow: 0 10px 25px rgba(255,106,0,0.25);
+      transition: transform .12s ease;
+    }
+    .submit-btn:hover{ transform: translateY(-1px); }
+    .submit-btn:active{ transform: translateY(0px); }
+
+    .clear-selected-btn{
+      display:none; /* only shown when >0 selected */
+    }
+
+    /* Filter summary line */
+    .filter-summary{
+      margin-top: 0.55rem;
+      font-size: 0.88rem;
+      color: rgba(0,0,0,0.72);
+      display:none;
+    }
+    .filter-summary strong{
+      font-weight:700;
+    }
+
+    /* Filters dropdown */
+    .filters-panel{
+      margin-top: 0.85rem;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.65);
+      border-radius: 1.25rem;
+      padding: 0.9rem;
+      display:none;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+    }
+    .filters-panel.open{ display:block; }
+
+    .filters-grid{
+      display:grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .filter-group{
+      background: rgba(255,255,255,0.55);
+      border: 1px solid rgba(0,0,0,0.08);
+      border-radius: 1.1rem;
+      padding: 0.75rem 0.75rem 0.85rem;
+    }
+
+    .filter-title{
+      font-weight: 800;
+      font-size: 0.95rem;
+      margin-bottom: 0.55rem;
+      letter-spacing: -0.01em;
+    }
+
+    .filter-buttons{
+      display:flex;
+      flex-wrap:wrap;
+      gap: 0.5rem;
+    }
+
+    .filter-btn{
+      border: 1px solid rgba(0,0,0,0.12);
+      background: rgba(255,255,255,0.9);
+      color:#111;
+      padding: 0.42rem 0.7rem;
+      border-radius: 999px;
+      font-family: inherit;
+      font-weight: 700;
+      cursor:pointer;
+      transition: transform .12s ease, opacity .12s ease;
+      font-size: 0.88rem;
+    }
+    .filter-btn:hover{ transform: translateY(-1px); }
+    .filter-btn.active{
+      border-color: rgba(0,0,0,0.22);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+    }
+
+    /* Container */
+    .container{
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1.2rem 1rem 3rem;
+    }
+
+    /* Headings */
+    .alpha-heading{
+      margin-top: 1.4rem;
+      font-size: 1.65rem;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      padding-top: 0.2rem;
+    }
+
+    .show-heading{
+      margin: 0.85rem 0 0.6rem;
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: rgba(0,0,0,0.85);
+    }
+
+    /* Cards */
+    .cards-wrapper{
+      display:grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+      align-items:start;
+    }
+
+    .card{
+      width:100%;
+      border-radius: 1.25rem;
+      padding: 0.95rem 1rem;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(0,0,0,0.08);
+      cursor:pointer;
+      transition: transform .12s ease;
+      position:relative;
+      overflow: visible;
+    }
+    .card:hover{ transform: translateY(-1px); }
+    .card:active{ transform: translateY(0px); }
+
+    .card.selected{
+      outline: 3px solid rgba(255,106,0,0.35);
+      outline-offset: 2px;
+    }
+
+    .card.full-width{
+      grid-column: 1 / -1;
+    }
+
+    .card-top{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap: 0.75rem;
+    }
+
+    .card-main{
+      min-width: 0;
+    }
+
+    .production{
+      font-size: 0.98rem;
+      font-weight: 700;
+      margin:0;
+      line-height:1.2;
+    }
+
+    .year{
+      font-size: 0.95rem;
+      font-weight: 400;
+      opacity: 0.75;
+      white-space:nowrap;
+    }
+
+    .nft-badge{
+      position:absolute;
+      top: -12px;
+      right: -12px;
+      width: 44px;
+      height: 44px;
+      border-radius: 999px;
+      background: #ff2a2a;
+      color:#fff;
+      font-weight: 900;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      border: 3px solid rgba(255,255,255,0.85);
+      box-shadow: 0 12px 25px rgba(0,0,0,0.18);
+      z-index: 10;
+      letter-spacing: 0.03em;
+    }
+
+    /* Details */
+    .details{
+      margin-top: 0.75rem;
+      display:none;
+      font-size: 0.92rem;
+      color: rgba(0,0,0,0.85);
+    }
+    .details.open{ display:block; }
+
+    .details hr{
+      border:none;
+      border-top: 1px solid rgba(0,0,0,0.14);
+      margin: 0.2rem 0 0.75rem;
+    }
+
+    .detail-line{
+      margin: 0.35rem 0;
+      line-height: 1.35;
+    }
+
+    /* Pills */
+    .pill-row{
+      display:flex;
+      flex-wrap:wrap;
+      gap: 0.45rem;
+      align-items:center;
+      margin-top: 0.55rem;
+    }
+
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap: 0.3rem;
+      padding: 0.35rem 0.6rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.55);
+      border: 1px solid rgba(0,0,0,0.10);
+      font-weight: 700;
+      font-size: 0.86rem;
+      cursor:pointer;
+      user-select:none;
+    }
+    .pill:hover{ background: rgba(255,255,255,0.75); }
+
+    /* Encora + site row */
+    .encora-row{
+      margin-top: 0.75rem;
+      display:flex;
+      gap: 0.6rem;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+
+    .encora-btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding: 0.6rem 0.9rem;
+      border-radius: 999px;
+      background: #111;
+      color:#fff;
+      text-decoration:none;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-size: 0.78rem;
+      border: 1px solid #111;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.18);
+    }
+    .encora-btn:hover{ opacity: 0.92; }
+
+    .site-pill{
+      cursor:pointer;
+      border:none;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    /* Site colours */
+    .site-mega{ background: rgba(255,0,0,0.16); border: 1px solid rgba(255,0,0,0.35); }
+    .site-google{ background: rgba(0,160,60,0.16); border: 1px solid rgba(0,160,60,0.35); }
+    .site-dropbox{ background: rgba(0,110,255,0.16); border: 1px solid rgba(0,110,255,0.35); }
+    .site-needs{ background: rgba(0,0,0,0.10); border: 1px solid rgba(0,0,0,0.20); }
+
+    /* Modal */
+    .modal-overlay{
+      position:fixed;
+      inset:0;
+      background: rgba(0,0,0,0.35);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      z-index: 2000;
+      padding: 1rem;
+    }
+    .modal-overlay.open{ display:flex; }
+
+    .modal{
+      width:min(720px, 100%);
+      max-height: 82vh;
+      overflow:auto;
+      border-radius: 1.4rem;
+      background: rgba(255,255,255,0.75);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid rgba(255,255,255,0.55);
+      box-shadow: 0 25px 70px rgba(0,0,0,0.25);
+      padding: 1rem;
+      position:relative;
+    }
+
+    .modal h2{
+      margin: 0.2rem 0 0.75rem;
+      font-size: 1.25rem;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+    }
+
+    .modal-close{
+      position:absolute;
+      top: 0.7rem;
+      right: 0.7rem;
+      border:none;
+      background: rgba(0,0,0,0.08);
+      width: 2.2rem;
+      height: 2.2rem;
+      border-radius: 999px;
+      cursor:pointer;
+      font-weight: 900;
+      font-size: 1rem;
+    }
+
+    .stats-block{
+      margin-top: 0.8rem;
+    }
+
+    .stats-block h3{
+      margin: 0.8rem 0 0.45rem;
+      font-size: 1rem;
+      font-weight: 900;
+    }
+
+    .stats-list{
+      display:flex;
+      flex-wrap:wrap;
+      gap: 0.5rem;
+    }
+
+    .stats-item{
+      cursor:pointer;
+      padding: 0.45rem 0.7rem;
+      border-radius: 999px;
+      border: 1px solid rgba(0,0,0,0.10);
+      background: rgba(255,255,255,0.65);
+      font-weight: 800;
+      font-size: 0.9rem;
+    }
+    .stats-item:hover{ background: rgba(255,255,255,0.85); }
+
+    /* Request modal */
+    .form-row{
+      display:flex;
+      gap: 0.7rem;
+      flex-wrap:wrap;
+      margin-top: 0.6rem;
+    }
+    .form-row input{
+      flex: 1 1 220px;
+      padding: 0.75rem 0.85rem;
+      border-radius: 1rem;
+      border: 1px solid rgba(0,0,0,0.12);
+      font-family: inherit;
+      font-size: 0.95rem;
+      background: rgba(255,255,255,0.85);
+    }
+
+    .modal-actions{
+      display:flex;
+      gap:0.6rem;
+      flex-wrap:wrap;
+      margin-top: 0.9rem;
+    }
+
+    /* Responsive */
+    @media(max-width: 900px){
+      .cards-wrapper{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .filters-grid{ grid-template-columns: 1fr; }
+    }
+
+    @media(max-width: 640px){
+      .cards-wrapper{ grid-template-columns: 1fr; }
+      .top-actions{ display:none; }
+      .hamburger{ display:block; }
+      .filters-panel{ margin-top: 0.7rem; }
+    }
+
+    .mobile-actions{
+      display:none;
+      margin-top: 0.7rem;
+      gap: 0.6rem;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    .mobile-actions.open{ display:flex; }
+
+    /* Type colours (card + filter buttons) */
+    .type-Musical{ background: rgba(255, 0, 0, 0.14); }
+    .type-Play{ background: rgba(47, 0, 255, 0.06); }
+    .type-TV{ background: rgba(140,0,255,0.10); }
+    .type-Concert{ background: rgba(0,160,60,0.12); }
+    .type-Opera{ background: rgba(0,110,255,0.12); }
+    .type-Ballet{ background: rgba(255,0,140,0.10); }
+    .type-Comedy{ background: rgba(255,200,0,0.14); }
+
+    /* ===== Professional theme overrides ===== */
+    :root{
+      --bg:#f4f5f8;
+      --navy:#14213d;
+      --orange:#d4881f;
+      --shadow: 0 2px 6px rgba(20,33,61,0.06), 0 8px 20px rgba(20,33,61,0.06);
+    }
+    body{ background: var(--bg); }
+
+    .banner{
+      background: var(--navy);
+      border-bottom: 3px solid var(--orange);
+      color:#fff;
+      backdrop-filter:none; -webkit-backdrop-filter:none;
+    }
+    .site-title{ color:#fff; font-size:1.5rem; letter-spacing:0.02em; }
+    .banner .btn{ background:rgba(255,255,255,0.1); color:#fff; border-color:rgba(255,255,255,0.25); box-shadow:none; }
+    .banner .btn:hover{ background:rgba(255,255,255,0.2); }
+    .banner .btn.danger{ background:rgba(255,90,90,0.15); color:#ffb3b3; border-color:rgba(255,120,120,0.4); }
+    .hamburger{ color:#fff; }
+    .hamburger:hover{ background:rgba(255,255,255,0.12); }
+    #searchInput{ background:#fff; box-shadow:none; border-color:transparent; }
+    .request-hint{ color:rgba(255,255,255,0.8); }
+    .request-hint strong{ color:#ffc971; }
+    .filter-summary{ color:rgba(255,255,255,0.85); }
+    .submit-btn{ background:var(--orange); box-shadow:none; }
+    .btn.primary{ background:var(--navy); }
+    .filters-panel{ background:#fff; color:var(--text); }
+    .filter-group{ background:#f8f9fb; }
+    .filter-btn.active{ outline:2px solid var(--navy); border-color:var(--navy); }
+
+    .container{ padding-top:1.5rem; }
+
+    .alpha-heading{
+      margin-top:2.2rem;
+      font-size:1.4rem;
+      font-weight:800;
+      color:var(--navy);
+      border-bottom:2px solid var(--navy);
+      padding-bottom:0.2rem;
+    }
+
+    .show-heading{
+      display:flex;
+      align-items:baseline;
+      justify-content:space-between;
+      gap:1rem;
+      margin:1.4rem 0 0.7rem;
+      padding:0.7rem 1rem;
+      font-size:1.3rem;
+      font-weight:700;
+      color:#fff;
+      background:var(--navy);
+      border-left:6px solid var(--orange);
+      border-radius:0.6rem;
+      box-shadow:var(--shadow);
+    }
+    .show-count{ font-size:0.8rem; font-weight:500; opacity:0.75; white-space:nowrap; }
+
+    .card{
+      background:#fff;
+      border:1px solid rgba(20,33,61,0.12);
+      border-left:6px solid var(--accent, #999);
+      border-radius:0.8rem;
+      box-shadow:var(--shadow);
+    }
+    .card:hover{ box-shadow:0 4px 10px rgba(20,33,61,0.12), 0 12px 28px rgba(20,33,61,0.1); }
+    .type-Musical{ --accent:#c0392b; background:#fff; }
+    .type-Play{ --accent:#3b4cca; background:#fff; }
+    .type-TV{ --accent:#8e44ad; background:#fff; }
+    .type-Concert{ --accent:#1e9e55; background:#fff; }
+    .type-Opera{ --accent:#1f78d1; background:#fff; }
+    .type-Ballet{ --accent:#d6368a; background:#fff; }
+    .type-Comedy{ --accent:#e0a800; background:#fff; }
+    .filter-btn.type-Musical{ background:rgba(192,57,43,0.12); }
+    .filter-btn.type-Play{ background:rgba(59,76,202,0.10); }
+    .filter-btn.type-TV{ background:rgba(142,68,173,0.12); }
+    .filter-btn.type-Concert{ background:rgba(30,158,85,0.12); }
+    .filter-btn.type-Opera{ background:rgba(31,120,209,0.12); }
+    .filter-btn.type-Ballet{ background:rgba(214,54,138,0.12); }
+    .filter-btn.type-Comedy{ background:rgba(224,168,0,0.16); }
+
+    .card-top{ align-items:center; }
+    .card-main{ flex:1; }
+    .production{ font-size:1rem; color:var(--navy); }
+
+    .select-box{
+      flex:0 0 auto;
+      width:1.6rem; height:1.6rem;
+      border-radius:50%;
+      border:2px solid rgba(20,33,61,0.3);
+      background:#fff;
+      color:#fff;
+      font-weight:900;
+      font-size:1rem;
+      display:flex; align-items:center; justify-content:center;
+      transition:all .12s ease;
+    }
+    .card:hover .select-box{ border-color:var(--orange); }
+
+    .card.selected{
+      outline:none;
+      background:#fff6e5;
+      border-color:var(--orange);
+      border-left-color:var(--orange);
+      box-shadow:0 0 0 3px rgba(212,136,31,0.45), var(--shadow);
+    }
+    .card.selected .select-box{ background:var(--orange); border-color:var(--orange); }
+
+    .new-badge{
+      position:absolute;
+      top:-10px; left:-10px;
+      background:#16a34a;
+      color:#fff;
+      font-weight:800;
+      font-size:0.7rem;
+      letter-spacing:0.08em;
+      padding:0.25rem 0.55rem;
+      border-radius:0.4rem;
+      border:2px solid #fff;
+      box-shadow:0 4px 10px rgba(0,0,0,0.2);
+      transform:rotate(-8deg);
+      z-index:10;
+    }
+
+    .form-row textarea{
+      flex:1 1 100%;
+      padding:0.75rem 0.85rem;
+      border-radius:1rem;
+      border:1px solid rgba(0,0,0,0.12);
+      font-family:inherit;
+      font-size:0.95rem;
+      resize:vertical;
+      background:rgba(255,255,255,0.85);
+    }
+    .modal{ background:#fff; }
+    .modal h2{ color:var(--navy); }
+
+    /* ===== Round 2 ===== */
+    .filters-header{
+      display:flex; align-items:center; justify-content:space-between;
+      margin-bottom:0.75rem; font-weight:800; color:var(--navy);
+    }
+    .filters-close{
+      border:none; background:rgba(20,33,61,0.08); color:var(--navy);
+      width:2rem; height:2rem; border-radius:50%; cursor:pointer; font-weight:900;
+    }
+    .filters-close:hover{ background:rgba(20,33,61,0.16); }
+
+    .alpha-nav{
+      display:flex; flex-wrap:wrap; gap:0.25rem; margin-top:0.75rem;
+    }
+    .alpha-btn{
+      min-width:1.9rem; height:1.9rem; padding:0 0.4rem;
+      border:1px solid rgba(255,255,255,0.25); border-radius:0.45rem;
+      background:rgba(255,255,255,0.1); color:#fff;
+      font-family:inherit; font-weight:700; font-size:0.8rem; cursor:pointer;
+    }
+    .alpha-btn:hover:not(:disabled){ background:var(--orange); border-color:var(--orange); }
+    .alpha-btn:disabled{ opacity:0.3; cursor:default; }
+
+    .modal.stats-modal{ width:min(860px,100%); padding:0; overflow:auto; }
+    .stats-modal h2{
+      margin:0; padding:1.1rem 1.5rem; color:#fff; background:var(--navy);
+      border-bottom:3px solid var(--orange); border-radius:1.4rem 1.4rem 0 0;
+    }
+    .stats-modal .modal-close{ background:rgba(255,255,255,0.15); color:#fff; z-index:2; }
+    #statsContent{ padding:1.25rem 1.5rem 1.5rem; background:#f4f5f8; }
+    .stats-hero{ text-align:center; padding:0.5rem 0 1.2rem; }
+    .stats-total{ font-size:3.2rem; font-weight:800; color:var(--orange); line-height:1; }
+    .stats-total-label{ color:rgba(20,33,61,0.65); font-weight:600; text-transform:uppercase; letter-spacing:0.08em; font-size:0.78rem; margin-top:0.3rem; }
+    .stats-grid{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1rem; }
+    .stats-block{
+      margin:0; background:#fff; border-radius:0.9rem; padding:1rem;
+      box-shadow:var(--shadow); border-top:4px solid var(--orange);
+    }
+    .stats-block h3{ margin:0 0 0.7rem; color:var(--navy); font-size:1.05rem; }
+    .stats-list{ flex-direction:column; flex-wrap:nowrap; gap:0.4rem; }
+    .stats-item{
+      position:relative; overflow:hidden; display:flex; align-items:center; gap:0.6rem;
+      border-radius:0.6rem; background:#f4f5f8; border:none; padding:0.5rem 0.7rem;
+    }
+    .stats-item:hover{ background:#ffeccc; }
+    .stats-item > span{ position:relative; z-index:1; }
+    .stats-rank{
+      flex:0 0 1.5rem; height:1.5rem; border-radius:50%; background:var(--navy); color:#fff;
+      display:flex; align-items:center; justify-content:center; font-size:0.75rem;
+    }
+    .stats-name{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--navy); }
+    .stats-count{ font-weight:800; color:var(--orange); }
+    .stats-bar{ position:absolute !important; left:0; bottom:0; height:3px; background:var(--orange); opacity:0.7; }
+    @media(max-width:640px){ .stats-grid{ grid-template-columns:1fr; } }
+
+    .banner .btn.new-only-btn{ background:rgba(22,163,74,0.2); border-color:rgba(74,222,128,0.6); color:#bbf7d0; }
+    .banner .btn.new-only-btn.active{ background:#16a34a; border-color:#16a34a; color:#fff; }
+
+    /* ===== Mobile ===== */
+    html, body{ max-width:100%; overflow-x:hidden; }
+    .production, .show-heading span:first-child, .stats-name{ overflow-wrap:anywhere; }
+    .pill{ max-width:100%; white-space:normal; }
+    .detail-line{ overflow-wrap:anywhere; }
+
+    @media(max-width: 640px){
+      .banner{ padding:0.7rem 0.75rem 0.6rem; }
+      .site-title{ font-size:1.2rem; white-space:normal; }
+      .search-wrap{ margin-top:0.6rem; gap:0.6rem; }
+      .search-box, .request-wrap{ flex:1 1 100%; min-width:0; width:100%; }
+      #searchInput{ padding:0.7rem 2.6rem 0.7rem 0.9rem; }
+      .clear-search{ top:1.35rem; transform:translateY(-50%); }
+      .request-hint{ font-size:0.8rem; }
+      .request-actions{ width:100%; }
+      .submit-btn{ flex:1 1 auto; }
+      .mobile-actions .btn{ flex:1 1 auto; padding:0.5rem 0.6rem; font-size:0.85rem; }
+
+      .alpha-nav{
+        flex-wrap:nowrap; overflow-x:auto; -webkit-overflow-scrolling:touch;
+        margin-top:0.6rem; padding-bottom:0.2rem; scrollbar-width:none;
+      }
+      .alpha-nav::-webkit-scrollbar{ display:none; }
+      .alpha-btn{ flex:0 0 auto; min-width:2.1rem; height:2.1rem; }
+
+      .filters-panel{ max-height:55vh; overflow-y:auto; padding:0.7rem; }
+      .filters-header{ position:sticky; top:-0.7rem; background:#fff; padding:0.3rem 0; z-index:1; }
+
+      .container{ padding:1rem 0.75rem 2.5rem; }
+      .show-heading{ font-size:1.1rem; padding:0.6rem 0.8rem; flex-wrap:wrap; gap:0.2rem; }
+      .alpha-heading{ scroll-margin-top:12rem; }
+      .card{ padding:0.8rem; }
+      .new-badge{ left:-4px; top:-8px; }
+      .nft-badge{ right:-4px; top:-8px; width:38px; height:38px; font-size:0.8rem; }
+
+      .modal-overlay{ padding:0.5rem; }
+      .modal{ max-height:92vh; padding:0.9rem; }
+      .modal-actions .btn{ flex:1 1 auto; }
+      .form-row input, .form-row textarea{ flex:1 1 100%; min-width:0; width:100%; font-size:16px; }
+      .stats-modal h2{ padding:1rem 3.2rem 1rem 1rem; font-size:1.1rem; }
+      #statsContent{ padding:1rem; }
+      .stats-total{ font-size:2.6rem; }
+    }
+  </style>
+</head>
+
+<body>
+  <header class="banner">
+    <div class="banner-inner">
+      <div class="top-row">
+        <h1 class="site-title">Cool Rider Trade</h1>
+
+        <button class="hamburger" id="hamburgerBtn">☰</button>
+
+        <div class="top-actions" id="desktopActions">
+          <button class="btn new-only-btn" id="newOnlyBtn">Show NEW only</button>
+          <button class="btn ghost" id="statsBtn">Recording Stats</button>
+          <button class="btn" id="filterToggleBtn">Filter Recordings</button>
+          <button class="btn danger" id="clearFiltersBtn">Clear Filters</button>
+        </div>
+      </div>
+
+      <!-- Mobile actions row -->
+      <div class="mobile-actions" id="mobileActions">
+        <button class="btn new-only-btn" id="newOnlyBtnMobile">Show NEW only</button>
+        <button class="btn ghost" id="statsBtnMobile">Recording Stats</button>
+        <button class="btn" id="filterToggleBtnMobile">Filter Recordings</button>
+        <button class="btn danger" id="clearFiltersBtnMobile">Clear Filters</button>
+      </div>
+
+      <div class="search-wrap">
+        <div class="search-box">
+          <input id="searchInput" type="text" placeholder="Search shows, cast, venues, masters, Encora links..." />
+          <button class="clear-search" id="clearSearchBtn">✕</button>
+
+          <div class="filter-summary" id="filterSummary"></div>
+        </div>
+
+        <div class="request-wrap">
+          <div class="request-hint">
+            <strong>Click on a recording to select it</strong> (up to 10), then submit your request.
+          </div>
+
+          <div class="request-actions">
+            <button class="submit-btn" id="submitBtn">Submit Request (0/10)</button>
+            <button class="btn danger clear-selected-btn" id="clearSelectedBtn">Clear Selected</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="alpha-nav" id="alphaNav"></div>
+
+      <div class="filters-panel" id="filtersPanel">
+        <div class="filters-header">
+          <span>Filter Recordings</span>
+          <button class="filters-close" id="filtersCloseBtn" aria-label="Close filters">✕</button>
+        </div>
+        <div class="filters-grid">
+          <div class="filter-group">
+            <div class="filter-title">Type of Show</div>
+            <div class="filter-buttons" id="typeFilters"></div>
+          </div>
+
+          <div class="filter-group">
+            <div class="filter-title">Location</div>
+            <div class="filter-buttons" id="locationFilters"></div>
+          </div>
+
+          <div class="filter-group">
+            <div class="filter-title">Hosted at</div>
+            <div class="filter-buttons" id="siteFilters"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <div id="cardsContainer"></div>
+  </main>
+
+  <!-- Stats Modal -->
+  <div class="modal-overlay" id="statsOverlay">
+    <div class="modal stats-modal">
+      <button class="modal-close" id="statsCloseBtn">✕</button>
+      <h2 id="statsTitle">Recording Stats</h2>
+
+      <div id="statsContent"></div>
+    </div>
+  </div>
+
+  <!-- Request Modal -->
+  <div class="modal-overlay" id="requestOverlay">
+    <div class="modal">
+      <button class="modal-close" id="requestCloseBtn">✕</button>
+      <h2>Submit Request</h2>
+
+      <div id="requestList" style="font-size:0.95rem; color:rgba(0,0,0,0.8);"></div>
+
+      <div class="form-row">
+        <input id="reqName" type="text" placeholder="Your name" />
+        <input id="reqEmail" type="email" placeholder="Your email" />
+        <input id="reqEncora" type="text" placeholder="Your Encora page link" />
+        <textarea id="reqNotes" rows="4" placeholder="Notes (optional)"></textarea>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn primary" id="sendRequestBtn">Send Email</button>
+        <button class="btn" id="cancelRequestBtn">Cancel</button>
+      </div>
+
+      <div id="requestStatus" style="margin-top:0.7rem; font-size:0.9rem;"></div>
+    </div>
+  </div>
+
+  <script>
+    /* ==========================
+       CONFIG
+    ========================== */
+
+    // IMPORTANT: paste your CSV URL here
+    const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTY37IrZArl6WEzj7wvu34aM_BB8UNQW2W9D2m6vummxIt9V8F8yxDABCZ1ArxUdFhkCHkfCLd9HtNd/pub?gid=0&single=true&output=csv";
+
+    // EmailJS keys
+    const EMAILJS_PUBLIC_KEY = "zeprmoUMACqPKjUiU";
+    const EMAILJS_SERVICE_ID = "service_efio3xt";
+    const EMAILJS_TEMPLATE_ID = "template_sw5e0tv";
+
+    const REQUEST_TO_EMAIL = "coolridertrade@gmail.com";
+
+    emailjs.init(EMAILJS_PUBLIC_KEY);
+
+    /* ==========================
+       STATE
+    ========================== */
+
+    let allData = [];
+    let filteredData = [];
+
+    let selected = []; // array of row objects
+    let showNewOnly = false;
+
+    // Persist open + selected states by unique key
+    // key = TITLE + VENUE + DATE (good enough for this sheet)
+    const uiState = {}; // { [key]: { open:boolean, selected:boolean } }
+
+    const activeFilters = {
+      type: new Set(),
+      location: new Set(),
+      site: new Set()
+    };
+
+    /* ==========================
+       HELPERS
+    ========================== */
+
+    const clean = (v) => (v ?? "").toString().trim();
+
+    function makeKey(row){
+      return `${clean(row.TITLE)}__${clean(row.VENUE)}__${clean(row.DATE)}`;
+    }
+
+    function normalizeTitleForGrouping(title){
+      let t = clean(title);
+      t = t.replace(/^(the|a)\s+/i, "");
+      return t.trim();
+    }
+
+    function groupLetterFromTitle(title){
+      const t = normalizeTitleForGrouping(title);
+      if(!t) return "#";
+      const first = t[0].toUpperCase();
+
+      if(/[0-9]/.test(first)) return "0-9";
+      if(/[A-Z]/.test(first)) return first;
+      return "#";
+    }
+
+    function parseYear(dateStr){
+      const s = clean(dateStr);
+      if(!s) return "";
+
+      // If dd/mm/yy or dd/mm/yyyy
+      const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})$/);
+      if(m){
+        let y = m[3];
+        if(y.length === 2) y = "20" + y;
+        return y;
+      }
+
+      // fallback: last 4 digits in string
+      const y = s.match(/(\d{4})(?!.*\d{4})/);
+      return y ? y[1] : "";
+    }
+
+    function parseDateSortable(dateStr){
+      const s = clean(dateStr);
+      if(!s) return { sort: 99999999, label: "" };
+
+      const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})$/);
+      if(m){
+        const d = parseInt(m[1],10);
+        const mo = parseInt(m[2],10);
+        let y = m[3];
+        if(y.length === 2) y = "20" + y;
+        const yy = parseInt(y,10);
+        return { sort: yy*10000 + mo*100 + d, label: formatPrettyDate(d, mo, yy) };
+      }
+
+      // fallback: try extract year
+      const year = parseYear(s);
+      if(year){
+        return { sort: parseInt(year,10)*10000 + 101, label: s };
+      }
+
+      return { sort: 99999999, label: s };
+    }
+
+    function formatPrettyDate(d, m, y){
+      const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+      return `${d}${ordinal(d)} ${months[m-1]} ${y}`;
+    }
+
+    function ordinal(n){
+      const s=["th","st","nd","rd"];
+      const v=n%100;
+      return s[(v-20)%10] || s[v] || s[0];
+    }
+
+    function safeLower(v){
+      return clean(v).toLowerCase();
+    }
+
+    function escapeHtml(str){
+      return clean(str)
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+
+    function siteClass(site){
+      const s = clean(site).toUpperCase();
+      if(s === "MEGA") return "site-mega";
+      if(s === "GOOGLE") return "site-google";
+      if(s === "DROPBOX") return "site-dropbox";
+      if(s === "NEEDS UPLOADING") return "site-needs";
+      return "site-needs";
+    }
+
+    function typeClass(type){
+      return `type-${clean(type)}`;
+    }
+
+    // Parses dd/mm/yy(yy) or ISO (yyyy-mm-dd) into a Date, or null
+    function parseAddedDate(v){
+      const s = clean(v);
+      let m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})$/);
+      if(m){
+        const y = m[3].length === 2 ? 2000 + parseInt(m[3],10) : parseInt(m[3],10);
+        return new Date(y, parseInt(m[2],10)-1, parseInt(m[1],10));
+      }
+      m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if(m) return new Date(parseInt(m[1],10), parseInt(m[2],10)-1, parseInt(m[3],10));
+      return null;
+    }
+
+    // Uses the "ADDED" column of the sheet; NEW = added within the last month
+    function isNewRecording(row){
+      const added = parseAddedDate(row.ADDED);
+      if(!added) return false;
+      const cutoff = new Date();
+      cutoff.setMonth(cutoff.getMonth() - 1);
+      cutoff.setHours(0,0,0,0);
+      return added >= cutoff && added <= new Date();
+    }
+
+    function isTrue(v){
+      return clean(v).toUpperCase() === "TRUE";
+    }
+
+    function showMasterLabel(master){
+      const m = clean(master);
+      if(!m) return "";
+      if(/^pro-?shot$/i.test(m)) return m;
+      if(/^house\s*cam$/i.test(m)) return m;
+      return `Master: ${m}`;
+    }
+
+    function updateSubmitBtn(){
+      document.getElementById("submitBtn").textContent = `Submit Request (${selected.length}/10)`;
+
+      const clearBtn = document.getElementById("clearSelectedBtn");
+      clearBtn.style.display = selected.length > 0 ? "inline-flex" : "none";
+    }
+
+    function updateFilterSummary(){
+      const summary = document.getElementById("filterSummary");
+      const q = clean(document.getElementById("searchInput").value);
+
+      const type = [...activeFilters.type];
+      const loc = [...activeFilters.location];
+      const site = [...activeFilters.site];
+
+      const parts = [];
+
+      if(showNewOnly) parts.push(`<strong>NEW recordings only</strong>`);
+      if(q) parts.push(`<strong>Search:</strong> ${escapeHtml(q)}`);
+      if(type.length) parts.push(`<strong>Type:</strong> ${escapeHtml(type.join(", "))}`);
+      if(loc.length) parts.push(`<strong>Location:</strong> ${escapeHtml(loc.join(", "))}`);
+      if(site.length) parts.push(`<strong>Hosted:</strong> ${escapeHtml(site.join(", "))}`);
+
+      if(parts.length === 0){
+        summary.style.display = "none";
+        summary.innerHTML = "";
+        return;
+      }
+
+      summary.style.display = "block";
+      summary.innerHTML = parts.join(" · ");
+    }
+
+    /* ==========================
+       FILTER BUTTONS
+    ========================== */
+
+    function uniqueValuesFromData(field){
+      const set = new Set();
+      for(const r of allData){
+        const v = clean(r[field]);
+        if(v) set.add(v);
+      }
+      return [...set].sort((a,b)=>a.localeCompare(b, undefined, { sensitivity:"base" }));
+    }
+
+    function buildFilterButtons(){
+      // Only build from TRUE rows (so we don’t show types with no recordings)
+      const trueRows = allData.filter(r => isTrue(r.SELECTED));
+
+      const typeSet = new Set();
+      const locSet = new Set();
+      const siteSet = new Set();
+
+      for(const r of trueRows){
+        const t = clean(r.TYPE);
+        const l = clean(r.LOCATION);
+        const s = clean(r.SITE).toUpperCase();
+
+        if(t) typeSet.add(t);
+        if(l) locSet.add(l);
+        if(s) siteSet.add(s);
+      }
+
+      const types = [...typeSet].sort((a,b)=>a.localeCompare(b, undefined, { sensitivity:"base" }));
+      const locs  = [...locSet].sort((a,b)=>a.localeCompare(b, undefined, { sensitivity:"base" }));
+
+      // Site ordering fixed
+      const sitesOrder = ["MEGA","GOOGLE","DROPBOX","NEEDS UPLOADING"];
+      const sites = sitesOrder.filter(x => siteSet.has(x));
+
+      const typeWrap = document.getElementById("typeFilters");
+      const locWrap  = document.getElementById("locationFilters");
+      const siteWrap = document.getElementById("siteFilters");
+
+      typeWrap.innerHTML = "";
+      locWrap.innerHTML  = "";
+      siteWrap.innerHTML = "";
+
+      // Types (coloured like cards)
+      for(const t of types){
+        const b = document.createElement("button");
+        b.className = `filter-btn ${typeClass(t)}`;
+        b.textContent = t;
+        b.addEventListener("click", ()=>{
+          toggleFilter("type", t, b);
+        });
+        typeWrap.appendChild(b);
+      }
+
+      // Locations (neutral)
+      for(const l of locs){
+        const b = document.createElement("button");
+        b.className = "filter-btn";
+        b.textContent = l;
+        b.addEventListener("click", ()=>{
+          toggleFilter("location", l, b);
+        });
+        locWrap.appendChild(b);
+      }
+
+      // Sites (coloured like pills)
+      for(const s of sites){
+        const b = document.createElement("button");
+        b.className = `filter-btn ${siteClass(s)}`;
+        b.textContent = s;
+        b.addEventListener("click", ()=>{
+          toggleFilter("site", s, b);
+        });
+        siteWrap.appendChild(b);
+      }
+
+      // Re-apply active states visually after rebuild
+      for(const btn of typeWrap.querySelectorAll("button")){
+        if(activeFilters.type.has(btn.textContent)) btn.classList.add("active");
+      }
+      for(const btn of locWrap.querySelectorAll("button")){
+        if(activeFilters.location.has(btn.textContent)) btn.classList.add("active");
+      }
+      for(const btn of siteWrap.querySelectorAll("button")){
+        if(activeFilters.site.has(btn.textContent)) btn.classList.add("active");
+      }
+    }
+
+    function toggleFilter(group, value, button){
+      const set = activeFilters[group];
+      if(set.has(value)){
+        set.delete(value);
+        button.classList.remove("active");
+      }else{
+        set.add(value);
+        button.classList.add("active");
+      }
+      updateFilterSummary();
+      renderCards();
+    }
+
+    function updateNewOnlyBtns(){
+      document.querySelectorAll(".new-only-btn").forEach(b=>{
+        b.classList.toggle("active", showNewOnly);
+        b.textContent = showNewOnly ? "Showing NEW only ✕" : "Show NEW only";
+      });
+    }
+
+    function toggleNewOnly(){
+      showNewOnly = !showNewOnly;
+      updateNewOnlyBtns();
+      updateFilterSummary();
+      renderCards();
+    }
+
+    function clearAllFilters(){
+      activeFilters.type.clear();
+      activeFilters.location.clear();
+      activeFilters.site.clear();
+      showNewOnly = false;
+      updateNewOnlyBtns();
+
+      // Clear active states
+      document.querySelectorAll(".filter-btn.active").forEach(b=>b.classList.remove("active"));
+
+      updateFilterSummary();
+      renderCards();
+    }
+
+    /* ==========================
+       APPLY FILTERS
+    ========================== */
+
+    function getFiltered(){
+      // Start with SELECTED=TRUE
+      let rows = allData.filter(r => isTrue(r.SELECTED));
+
+      if(showNewOnly) rows = rows.filter(isNewRecording);
+
+      // Type
+      if(activeFilters.type.size){
+        rows = rows.filter(r => activeFilters.type.has(clean(r.TYPE)));
+      }
+
+      // Location
+      if(activeFilters.location.size){
+        rows = rows.filter(r => activeFilters.location.has(clean(r.LOCATION)));
+      }
+
+      // Site
+      if(activeFilters.site.size){
+        rows = rows.filter(r => activeFilters.site.has(clean(r.SITE).toUpperCase()));
+      }
+
+      // Search
+      const q = safeLower(document.getElementById("searchInput").value);
+      if(q){
+        rows = rows.filter(r=>{
+          const hay = [
+            r.TITLE, r.PRODUCTION, r.VENUE, r.MASTER,
+            r.CAST, r.LOCATION, r.TYPE,
+            r.DATE, r["ENCORA LINK"], r.SITE,
+            r["FILE TYPE"], r["FILE SIZE"], r.RESOLUTION
+          ].map(safeLower).join(" | ");
+          return hay.includes(q);
+        });
+      }
+
+      return rows;
+    }
+
+    /* ==========================
+       GROUPING
+    ========================== */
+
+    function groupByAlphaThenShow(rows){
+      // alpha => show => recordings[]
+      const alphaGroups = {};
+
+      for(const r of rows){
+        const alpha = groupLetterFromTitle(r.TITLE);
+        const show = clean(r.TITLE) || "(No title)";
+
+        if(!alphaGroups[alpha]) alphaGroups[alpha] = {};
+        if(!alphaGroups[alpha][show]) alphaGroups[alpha][show] = [];
+        alphaGroups[alpha][show].push(r);
+      }
+
+      // Sort each show by date oldest first
+      for(const alpha of Object.keys(alphaGroups)){
+        for(const show of Object.keys(alphaGroups[alpha])){
+          alphaGroups[alpha][show].sort((a,b)=>{
+            return parseDateSortable(a.DATE).sort - parseDateSortable(b.DATE).sort;
+          });
+        }
+      }
+
+      // Sort show headings alphabetically (case-insensitive)
+      for(const alpha of Object.keys(alphaGroups)){
+        const sortedShowEntries = Object.entries(alphaGroups[alpha]).sort((a,b)=>{
+          return normalizeTitleForGrouping(a[0]).localeCompare(normalizeTitleForGrouping(b[0]), undefined, { sensitivity:"base" });
+        });
+
+        const newObj = {};
+        for(const [k,v] of sortedShowEntries) newObj[k] = v;
+        alphaGroups[alpha] = newObj;
+      }
+
+      return alphaGroups;
+    }
+
+    function alphaSortKey(alpha){
+      // Put 0-9 and # before A
+      if(alpha === "0-9") return "0";
+      if(alpha === "#") return "1";
+      return "2" + alpha;
+    }
+
+    /* ==========================
+       RENDER
+    ========================== */
+
+    function renderCards(){
+      const rows = getFiltered();
+      filteredData = rows;
+
+      const container = document.getElementById("cardsContainer");
+      container.innerHTML = "";
+
+      const grouped = groupByAlphaThenShow(rows);
+
+      const alphaKeys = Object.keys(grouped).sort((a,b)=>{
+        return alphaSortKey(a).localeCompare(alphaSortKey(b));
+      });
+
+      for(const alpha of alphaKeys){
+        const alphaH = document.createElement("div");
+        alphaH.className = "alpha-heading";
+        alphaH.id = `alpha-${alpha}`;
+        alphaH.textContent = alpha === "#" ? "#" : alpha;
+        container.appendChild(alphaH);
+
+        const shows = grouped[alpha];
+
+        for(const showName of Object.keys(shows)){
+          const showH = document.createElement("div");
+          showH.className = "show-heading";
+          showH.innerHTML = `<span>${escapeHtml(showName)}</span><span class="show-count">${shows[showName].length} recording${shows[showName].length === 1 ? "" : "s"}</span>`;
+          container.appendChild(showH);
+
+          const wrap = document.createElement("div");
+          wrap.className = "cards-wrapper";
+          container.appendChild(wrap);
+
+          for(const row of shows[showName]){
+            wrap.appendChild(buildCard(row));
+          }
+        }
+      }
+
+      buildAlphaNav(alphaKeys);
+      updateSubmitBtn();
+    }
+
+    function buildAlphaNav(present){
+      const nav = document.getElementById("alphaNav");
+      nav.innerHTML = "";
+      const letters = ["0-9", ..."ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("")];
+      for(const l of letters){
+        const b = document.createElement("button");
+        b.className = "alpha-btn";
+        b.textContent = l;
+        if(!present.includes(l)){
+          b.disabled = true;
+        }else{
+          b.addEventListener("click", ()=>{
+            const target = document.getElementById(`alpha-${l}`);
+            if(!target) return;
+            const offset = document.querySelector(".banner").offsetHeight + 8;
+            window.scrollTo({ top: target.getBoundingClientRect().top + window.scrollY - offset, behavior:"smooth" });
+          });
+        }
+        nav.appendChild(b);
+      }
+    }
+
+    function buildCard(row){
+      const type = clean(row.TYPE);
+      const production = clean(row.PRODUCTION);
+      const venue = clean(row.VENUE);
+      const master = clean(row.MASTER);
+      const cast = clean(row.CAST);
+      const encoraRaw = clean(row["ENCORA LINK"]);
+      const site = clean(row.SITE).toUpperCase();
+      const nft = isTrue(row.NFT);
+
+      const dateInfo = parseDateSortable(row.DATE);
+      const year = parseYear(row.DATE);
+
+      const key = makeKey(row);
+      if(!uiState[key]) uiState[key] = { open:false, selected:false };
+
+      // keep selected array in sync
+      const isSelected = uiState[key].selected;
+
+      const card = document.createElement("div");
+      card.className = `card ${typeClass(type)}`;
+      if(isSelected) card.classList.add("selected");
+      if(uiState[key].open) card.classList.add("full-width");
+
+      if(nft){
+        const badge = document.createElement("div");
+        badge.className = "nft-badge";
+        badge.textContent = "NFT";
+        card.appendChild(badge);
+      }
+
+      if(isNewRecording(row)){
+        const nb = document.createElement("div");
+        nb.className = "new-badge";
+        nb.textContent = "NEW";
+        card.appendChild(nb);
+      }
+
+      const top = document.createElement("div");
+      top.className = "card-top";
+
+      const check = document.createElement("div");
+      check.className = "select-box";
+      check.textContent = isSelected ? "✓" : "";
+      top.appendChild(check);
+
+      const main = document.createElement("div");
+      main.className = "card-main";
+
+      const prod = document.createElement("p");
+      prod.className = "production";
+      prod.textContent = production || "(No production)";
+      main.appendChild(prod);
+
+      top.appendChild(main);
+
+      const yearEl = document.createElement("div");
+      yearEl.className = "year";
+      yearEl.textContent = year || "";
+      top.appendChild(yearEl);
+
+      card.appendChild(top);
+
+      const details = document.createElement("div");
+      details.className = "details";
+      if(uiState[key].open) details.classList.add("open");
+
+      details.innerHTML = `<hr />`;
+
+      // Venue pill
+      if(venue){
+        const rowDiv = document.createElement("div");
+        rowDiv.className = "pill-row";
+
+        const pill = document.createElement("span");
+        pill.className = "pill";
+        pill.textContent = venue;
+        pill.addEventListener("click",(e)=>{
+          e.stopPropagation();
+          setSearch(venue);
+        });
+
+        rowDiv.appendChild(pill);
+        details.appendChild(rowDiv);
+      }
+
+      // Date
+      if(dateInfo.label){
+        const d = document.createElement("div");
+        d.className = "detail-line";
+        d.textContent = `Recording Date: ${dateInfo.label}`;
+        details.appendChild(d);
+      }
+
+      // Master pill
+      const masterLabel = showMasterLabel(master);
+      if(masterLabel){
+        const rowDiv = document.createElement("div");
+        rowDiv.className = "pill-row";
+
+        const pill = document.createElement("span");
+        pill.className = "pill";
+        pill.textContent = masterLabel;
+        pill.addEventListener("click",(e)=>{
+          e.stopPropagation();
+          setSearch(master);
+        });
+
+        rowDiv.appendChild(pill);
+        details.appendChild(rowDiv);
+      }
+
+      // Extra info line (File Type/Size/Resolution)
+      const ft = clean(row["FILE TYPE"]);
+      const fs = clean(row["FILE SIZE"]);
+      const res = clean(row.RESOLUTION);
+
+      const extraParts = [];
+      if(ft) extraParts.push(`File Type: ${ft}`);
+      if(fs) extraParts.push(`File Size: ${fs}`);
+      if(res) extraParts.push(`Resolution: ${res}`);
+
+      if(extraParts.length){
+        const extra = document.createElement("div");
+        extra.className = "detail-line";
+        extra.textContent = extraParts.join(" - ");
+        details.appendChild(extra);
+      }
+
+      // Cast pills
+      if(cast){
+        const castWrap = document.createElement("div");
+        castWrap.className = "pill-row";
+
+        const names = cast.split(",").map(x=>x.trim()).filter(Boolean);
+        for(const name of names){
+          const p = document.createElement("span");
+          p.className = "pill";
+          p.textContent = name;
+          p.addEventListener("click",(e)=>{
+            e.stopPropagation();
+            setSearch(name);
+          });
+          castWrap.appendChild(p);
+        }
+        details.appendChild(castWrap);
+      }
+
+      // Encora + Site
+      const encoraRow = document.createElement("div");
+      encoraRow.className = "encora-row";
+
+      if(encoraRaw){
+        const link = document.createElement("a");
+        link.className = "encora-btn";
+        link.textContent = "ENCORA LINK";
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.href = `https://encora.it/recordings/${encoraRaw}`;
+        encoraRow.appendChild(link);
+      }
+
+      if(site){
+        const sp = document.createElement("span");
+        sp.className = `pill site-pill ${siteClass(site)}`;
+        sp.textContent = site;
+        sp.addEventListener("click",(e)=>{
+          e.stopPropagation();
+          setSearch(site);
+        });
+        encoraRow.appendChild(sp);
+      }
+
+      if(encoraRow.children.length){
+        details.appendChild(encoraRow);
+      }
+
+      card.appendChild(details);
+
+      // Click card toggles open/full width + selection
+      card.addEventListener("click", ()=>{
+        const state = uiState[key];
+
+        // Toggle open
+        state.open = !state.open;
+
+        // Toggle full width with open
+        if(state.open){
+          card.classList.add("full-width");
+          details.classList.add("open");
+        }else{
+          card.classList.remove("full-width");
+          details.classList.remove("open");
+        }
+
+        // Toggle selection
+        if(!state.selected){
+          if(selected.length >= 10){
+            alert("You can only select up to 10 recordings.");
+            // keep open state though
+            renderCards();
+            return;
+          }
+          state.selected = true;
+          selected.push(row);
+        }else{
+          state.selected = false;
+          selected = selected.filter(r => makeKey(r) !== key);
+        }
+
+        renderCards();
+      });
+
+      return card;
+    }
+
+    /* ==========================
+       SEARCH
+    ========================== */
+
+    function setSearch(value){
+      const input = document.getElementById("searchInput");
+      input.value = value;
+      updateSearchClearBtn();
+      updateFilterSummary();
+      renderCards();
+    }
+
+    function updateSearchClearBtn(){
+      const q = clean(document.getElementById("searchInput").value);
+      document.getElementById("clearSearchBtn").style.display = q ? "block" : "none";
+    }
+
+    /* ==========================
+       STATS
+    ========================== */
+
+    function top5WithTies(map){
+      const arr = Object.entries(map).map(([k,v])=>({k,v}));
+      arr.sort((a,b)=>b.v-a.v || a.k.localeCompare(b.k, undefined, { sensitivity:"base" }));
+
+      const result = [];
+      let rank = 0;
+      let lastVal = null;
+
+      for(const item of arr){
+        if(lastVal === null || item.v !== lastVal){
+          rank++;
+          lastVal = item.v;
+        }
+        if(rank > 5) break;
+        result.push(item);
+      }
+      return result;
+    }
+
+    function buildStats(){
+      const rows = allData.filter(r => isTrue(r.SELECTED));
+      const total = rows.length;
+
+      document.getElementById("statsTitle").textContent = `Recording Stats — ${total}`;
+
+      const masters = {};
+      const performers = {};
+      const shows = {};
+      const venues = {};
+
+      for(const r of rows){
+        const m = clean(r.MASTER);
+        const t = clean(r.TITLE);
+        const v = clean(r.VENUE);
+        const c = clean(r.CAST);
+
+        if(m) masters[m] = (masters[m]||0)+1;
+        if(t) shows[t] = (shows[t]||0)+1;
+        if(v) venues[v] = (venues[v]||0)+1;
+
+        if(c){
+          const names = c.split(",").map(x=>x.trim()).filter(Boolean);
+          for(const n of names){
+            performers[n] = (performers[n]||0)+1;
+          }
+        }
+      }
+
+      const blocks = [
+        { title:"Top Masters", data: top5WithTies(masters) },
+        { title:"Top Performers", data: top5WithTies(performers) },
+        { title:"Top Shows", data: top5WithTies(shows) },
+        { title:"Top Venues", data: top5WithTies(venues) }
+      ];
+
+      const wrap = document.getElementById("statsContent");
+      wrap.innerHTML = `<div class="stats-hero"><div class="stats-total">${total}</div><div class="stats-total-label">recordings in the collection</div></div>`;
+      const grid = document.createElement("div");
+      grid.className = "stats-grid";
+      wrap.appendChild(grid);
+      const icons = { "Top Masters":"🎬", "Top Performers":"⭐", "Top Shows":"🎭", "Top Venues":"🏛️" };
+
+      for(const b of blocks){
+        const block = document.createElement("div");
+        block.className = "stats-block";
+
+        const h = document.createElement("h3");
+        h.textContent = `${icons[b.title] || ""} ${b.title}`;
+        block.appendChild(h);
+
+        const list = document.createElement("div");
+        list.className = "stats-list";
+
+        if(!b.data.length){
+          const none = document.createElement("div");
+          none.style.opacity = "0.7";
+          none.textContent = "No data";
+          list.appendChild(none);
+        }else{
+          const max = b.data[0].v;
+          let rank = 0, last = null;
+          for(const item of b.data){
+            if(item.v !== last){ rank++; last = item.v; }
+            const chip = document.createElement("div");
+            chip.className = "stats-item";
+            chip.innerHTML = `<span class="stats-rank">${rank}</span><span class="stats-name">${escapeHtml(item.k)}</span><span class="stats-count">${item.v}</span><span class="stats-bar" style="width:${Math.round(item.v/max*100)}%"></span>`;
+            chip.addEventListener("click", ()=>{
+              closeStats();
+              setSearch(item.k);
+            });
+            list.appendChild(chip);
+          }
+        }
+
+        block.appendChild(list);
+        grid.appendChild(block);
+      }
+    }
+
+    function openStats(){
+      buildStats();
+      document.getElementById("statsOverlay").classList.add("open");
+    }
+    function closeStats(){
+      document.getElementById("statsOverlay").classList.remove("open");
+    }
+
+    /* ==========================
+       REQUEST MODAL + EMAILJS
+    ========================== */
+
+    function openRequest(){
+      if(selected.length === 0){
+        alert("Select at least 1 recording first.");
+        return;
+      }
+
+      const list = selected.map(r=>{
+        const d = parseDateSortable(r.DATE).label || clean(r.DATE);
+        return `• ${clean(r.TITLE)} — ${clean(r.VENUE)} — ${d}`;
+      }).join("<br>");
+
+      document.getElementById("requestList").innerHTML = list;
+      document.getElementById("requestStatus").textContent = "";
+      document.getElementById("requestOverlay").classList.add("open");
+    }
+
+    function closeRequest(){
+      document.getElementById("requestOverlay").classList.remove("open");
+    }
+
+    async function sendRequestEmail(){
+      const name = clean(document.getElementById("reqName").value);
+      const email = clean(document.getElementById("reqEmail").value);
+      const encora = clean(document.getElementById("reqEncora").value);
+      const notes = clean(document.getElementById("reqNotes").value);
+
+      if(!name || !email){
+        document.getElementById("requestStatus").textContent = "Please enter your name and email.";
+        return;
+      }
+
+      const recordings = selected.map(r=>{
+        const d = parseDateSortable(r.DATE).label || clean(r.DATE);
+        return `${clean(r.TITLE)} — ${clean(r.VENUE)} — ${d}`;
+      }).join("\n");
+
+      document.getElementById("requestStatus").textContent = "Sending...";
+
+      try{
+        await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+          name,
+          email,
+          encora,
+          notes,
+          recordings,
+          to_email: REQUEST_TO_EMAIL
+        });
+
+        document.getElementById("requestStatus").textContent = "Sent! Thank you — your request has been emailed.";
+
+        // optional: close after a moment
+        setTimeout(()=>{
+          closeRequest();
+        }, 900);
+
+      }catch(err){
+        console.error(err);
+        document.getElementById("requestStatus").textContent =
+          "Email failed to send. Please try again in a moment.";
+      }
+    }
+
+    /* ==========================
+       CLEAR SELECTED
+    ========================== */
+
+    function clearSelected(){
+      selected = [];
+
+      // clear ui state selected + collapse open cards that were selected
+      for(const k of Object.keys(uiState)){
+        if(uiState[k].selected){
+          uiState[k].selected = false;
+          uiState[k].open = false;
+        }
+      }
+
+      updateSubmitBtn();
+      renderCards();
+    }
+
+    /* ==========================
+       UI CONTROLS
+    ========================== */
+
+    function toggleFiltersPanel(){
+      document.getElementById("filtersPanel").classList.toggle("open");
+    }
+
+    function toggleMobileMenu(){
+      document.getElementById("mobileActions").classList.toggle("open");
+    }
+
+    /* ==========================
+       LOAD CSV
+    ========================== */
+
+    function loadCSV(){
+      Papa.parse(CSV_URL, {
+        download: true,
+        header: true,
+        skipEmptyLines: true,
+        complete: (results)=>{
+          allData = results.data.map(r=>{
+            // Normalize keys to expected header names
+            // Your headers are uppercase already, so we keep them
+            return r;
+          });
+
+          // Build initial UI state
+          for(const r of allData){
+            const key = makeKey(r);
+            if(!uiState[key]) uiState[key] = { open:false, selected:false };
+          }
+
+          buildFilterButtons();
+          updateFilterSummary();
+          renderCards();
+        },
+        error: (err)=>{
+          console.error("CSV load error:", err);
+          alert("CSV failed to load. Check the CSV_URL is correct and publicly accessible.");
+        }
+      });
+    }
+
+    /* ==========================
+       INIT
+    ========================== */
+
+    document.getElementById("searchInput").addEventListener("input", ()=>{
+      updateSearchClearBtn();
+      updateFilterSummary();
+      renderCards();
+    });
+
+    document.getElementById("clearSearchBtn").addEventListener("click", ()=>{
+      document.getElementById("searchInput").value = "";
+      updateSearchClearBtn();
+      updateFilterSummary();
+      renderCards();
+    });
+
+    document.getElementById("submitBtn").addEventListener("click", openRequest);
+
+    document.getElementById("clearSelectedBtn").addEventListener("click", clearSelected);
+
+    document.getElementById("sendRequestBtn").addEventListener("click", sendRequestEmail);
+    document.getElementById("cancelRequestBtn").addEventListener("click", closeRequest);
+    document.getElementById("requestCloseBtn").addEventListener("click", closeRequest);
+
+    document.getElementById("newOnlyBtn").addEventListener("click", toggleNewOnly);
+    document.getElementById("newOnlyBtnMobile").addEventListener("click", toggleNewOnly);
+    document.getElementById("statsBtn").addEventListener("click", openStats);
+    document.getElementById("statsBtnMobile").addEventListener("click", openStats);
+    document.getElementById("statsCloseBtn").addEventListener("click", closeStats);
+    document.getElementById("statsOverlay").addEventListener("click", (e)=>{
+      if(e.target.id === "statsOverlay") closeStats();
+    });
+
+    document.getElementById("filterToggleBtn").addEventListener("click", toggleFiltersPanel);
+    document.getElementById("filterToggleBtnMobile").addEventListener("click", toggleFiltersPanel);
+
+    document.getElementById("clearFiltersBtn").addEventListener("click", clearAllFilters);
+    document.getElementById("clearFiltersBtnMobile").addEventListener("click", clearAllFilters);
+
+    document.getElementById("filtersCloseBtn").addEventListener("click", toggleFiltersPanel);
+    document.getElementById("hamburgerBtn").addEventListener("click", toggleMobileMenu);
+
+    // Close request overlay if click outside
+    document.getElementById("requestOverlay").addEventListener("click", (e)=>{
+      if(e.target.id === "requestOverlay") closeRequest();
+    });
+
+    // Load
+    loadCSV();
+  </script>
+</body>
+</html>
