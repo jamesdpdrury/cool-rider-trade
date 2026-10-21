@@ -1207,7 +1207,7 @@
 
       const parts = [];
 
-      if(showNewOnly) parts.push(`<strong>NEW recordings only</strong>`);
+      if(showNewOnly) parts.push(`<strong>Showing recordings I've added within the last month</strong>`);
       if(q) parts.push(`<strong>Search:</strong> ${escapeHtml(q)}`);
       if(type.length) parts.push(`<strong>Type:</strong> ${escapeHtml(type.join(", "))}`);
       if(loc.length) parts.push(`<strong>Location:</strong> ${escapeHtml(loc.join(", "))}`);
