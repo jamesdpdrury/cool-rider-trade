@@ -417,6 +417,16 @@
       user-select:none;
     }
     .pill:hover{ background: rgba(255,255,255,0.75); }
+    .pill-count{ font-weight:400; }
+    .performer-list{ display:flex; flex-direction:column; gap:0.4rem; margin-top:1rem; }
+    .performer-item{
+      display:flex; justify-content:space-between; align-items:center; gap:1rem;
+      padding:0.6rem 0.9rem; border-radius:12px; cursor:pointer;
+      background: rgba(255,255,255,0.55); border:1px solid rgba(0,0,0,0.10);
+    }
+    .performer-item:hover{ background: rgba(255,255,255,0.75); }
+    .performer-item .p-name{ font-weight:700; }
+    .performer-item .p-count{ font-weight:400; white-space:nowrap; }
 
     /* Encora + site row */
     .encora-row{
@@ -904,6 +914,7 @@
         <div class="sort-toggle" role="group" aria-label="Sort recordings">
           <button class="sort-btn active" id="sortAlphaBtn" type="button">A–Z</button>
           <button class="sort-btn" id="sortDateBtn" type="button">Date</button>
+          <button class="sort-btn" id="sortPerformersBtn" type="button">Performers</button>
         </div>
       </div>
 
@@ -998,7 +1009,8 @@
 
     let selected = []; // array of row objects
     let showNewOnly = false;
-    let sortMode = "alpha"; // "alpha" | "date"
+    let sortMode = "alpha"; // "alpha" | "date" | "performers"
+    let performerCountsCache = null;
 
     // Persist open + selected states by unique key
     // key = TITLE + VENUE + DATE (good enough for this sheet)
@@ -1452,6 +1464,7 @@
       sortMode = mode;
       document.getElementById("sortAlphaBtn").classList.toggle("active", mode === "alpha");
       document.getElementById("sortDateBtn").classList.toggle("active", mode === "date");
+      document.getElementById("sortPerformersBtn").classList.toggle("active", mode === "performers");
       renderCards();
       window.scrollTo({ top: 0 });
     }
@@ -1529,12 +1542,63 @@
       }
     }
 
+    // Recording counts per performer across all selected recordings
+    function getPerformerCounts(){
+      if(performerCountsCache && performerCountsCache.src === allData) return performerCountsCache.counts;
+      const counts = {};
+      for(const r of allData){
+        if(!isTrue(r.SELECTED)) continue;
+        const names = new Set(clean(r.CAST).split(",").map(x=>x.trim()).filter(Boolean));
+        for(const n of names) counts[n] = (counts[n]||0)+1;
+      }
+      performerCountsCache = { src: allData, counts };
+      return counts;
+    }
+
+    function renderPerformerList(rows){
+      const container = document.getElementById("cardsContainer");
+      const counts = getPerformerCounts();
+      const names = new Set();
+      for(const r of rows){
+        for(const n of clean(r.CAST).split(",").map(x=>x.trim()).filter(Boolean)) names.add(n);
+      }
+      const sorted = [...names].sort((a,b)=>a.localeCompare(b, undefined, { sensitivity:"base" }));
+
+      const list = document.createElement("div");
+      list.className = "performer-list";
+      for(const n of sorted){
+        const item = document.createElement("div");
+        item.className = "performer-item";
+        const nameEl = document.createElement("span");
+        nameEl.className = "p-name";
+        nameEl.textContent = n;
+        const countEl = document.createElement("span");
+        countEl.className = "p-count";
+        countEl.textContent = `(${counts[n] || 0})`;
+        item.append(nameEl, countEl);
+        item.addEventListener("click", ()=>{
+          setSortMode("alpha");
+          setSearch(n);
+        });
+        list.appendChild(item);
+      }
+      container.appendChild(list);
+    }
+
     function renderCards(){
       const rows = getFiltered();
       filteredData = rows;
 
       const container = document.getElementById("cardsContainer");
       container.innerHTML = "";
+
+      document.getElementById("alphaNav").style.display = sortMode === "performers" ? "none" : "";
+
+      if(sortMode === "performers"){
+        renderPerformerList(rows);
+        updateSubmitBtn();
+        return;
+      }
 
       if(sortMode === "date"){
         renderByDate(rows);
@@ -1753,7 +1817,12 @@
         for(const name of names){
           const p = document.createElement("span");
           p.className = "pill";
-          p.textContent = name;
+          const nameEl = document.createElement("span");
+          nameEl.textContent = name;
+          const countEl = document.createElement("span");
+          countEl.className = "pill-count";
+          countEl.textContent = `(${getPerformerCounts()[name] || 0})`;
+          p.append(nameEl, countEl);
           p.addEventListener("click",(e)=>{
             e.stopPropagation();
             setSearch(name);
@@ -2116,6 +2185,7 @@
 
     document.getElementById("sortAlphaBtn").addEventListener("click", ()=> setSortMode("alpha"));
     document.getElementById("sortDateBtn").addEventListener("click", ()=> setSortMode("date"));
+    document.getElementById("sortPerformersBtn").addEventListener("click", ()=> setSortMode("performers"));
     document.getElementById("newOnlyBtn").addEventListener("click", toggleNewOnly);
     document.getElementById("newOnlyBtnMobile").addEventListener("click", toggleNewOnly);
     document.getElementById("statsBtn").addEventListener("click", openStats);
